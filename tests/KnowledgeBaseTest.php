@@ -115,4 +115,63 @@ class KnowledgeBaseTest extends TestCase
         $r = $this->kb->delete($kb['kbId']);
         $this->assertTrue($r);
     }
+
+    public function testUpdateAndPublish()
+    {
+        $name = 'Learn English - testUpdateAndPublish';
+        $qnaPairs = [
+            ['answer' => 'Fine, thanks.', 'question' => 'how are you?'],
+            ['answer' => 'Fine, thanks.', 'question' => 'are you ok?'],
+            ['answer' => 'Nice to meet you, too.', 'question' => 'Nice to meet you'],
+        ];
+        $urls = ['https://example.com/'];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $kb = $this->kb->create($name, $qnaPairs, $urls);
+        $this->assertArrayHasKey('kbId', $kb);
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->generateAnswer($kb['kbId'], 'how are you');
+        $this->assertEquals(1, count($r['answers']));
+        $this->assertEquals(['how are you?', 'are you ok?'], $r['answers'][0]['questions']);
+
+        $add = [
+            'qnaPairs' => [
+                [
+                    'answer' => 'Hello, How can I help you?',
+                    'question' => 'Hello',
+                ],
+            ],
+            'urls' => [
+                'http://www.spaceneedle.com/faq/',
+            ],
+        ];
+        $delete = [
+            'qnaPairs' => [['answer' => 'Fine, thanks.', 'question' => 'are you ok?']],
+            'urls' => ['https://example.com/']
+        ];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->update($kb['kbId'], $add, $delete);
+        $this->assertTrue($r);
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->publish($kb['kbId']);
+        $this->assertTrue($r);
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->generateAnswer($kb['kbId'], 'Hello');
+        $this->assertEquals(1, count($r['answers']));
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->generateAnswer($kb['kbId'], 'are you ok?');
+        $this->assertEquals(0, count($r['answers']));
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->delete($kb['kbId']);
+        $this->assertTrue($r);
+    }
 }
