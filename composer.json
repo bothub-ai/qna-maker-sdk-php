@@ -1,0 +1,35 @@
+{
+    "name": "bothub-ai/qna-maker-sdk-php",
+    "description": "Microsoft QnA Maker SDK PHP composer edition",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "bothub-ai",
+            "homepage": "https://github.com/bothub-ai",
+            "role": "Developer"
+        },
+        {
+            "name": "sinkcup",
+            "homepage": "https://github.com/sinkcup",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Microsoft\\QnAMaker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Microsoft\\QnAMaker\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=5.6.0",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.7"
+    }
+}
