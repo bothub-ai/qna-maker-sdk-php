@@ -62,4 +62,34 @@ class KnowledgeBaseTest extends TestCase
         $r = $this->kb->delete($r['kbId']);
         $this->assertTrue($r);
     }
+
+    public function testGenerateAnswer()
+    {
+        $name = 'Learn English - testGenerateAnswer';
+        $qnaPairs = [
+            ['answer' => 'Fine, thanks.', 'question' => 'how are you?'],
+            ['answer' => 'Fine, thanks.', 'question' => 'are you ok?'],
+            ['answer' => 'Nice to meet you, too.', 'question' => 'Nice to meet you'],
+        ];
+        $kb = $this->kb->create($name, $qnaPairs);
+        $this->assertArrayHasKey('kbId', $kb);
+
+        $r = $this->kb->generateAnswer($kb['kbId'], 'how are you');
+        $this->assertEquals(1, count($r['answers']));
+        $this->assertEquals(['how are you?', 'are you ok?'], $r['answers'][0]['questions']);
+        $this->assertEquals('Fine, thanks.', $r['answers'][0]['answer']);
+
+        $r = $this->kb->generateAnswer($kb['kbId'], 'Nice to meet you');
+        $this->assertEquals(1, count($r['answers']));
+        // test question always be converted to low case
+        $this->assertEquals([strtolower('Nice to meet you')], $r['answers'][0]['questions']);
+        // test question keep case
+        $this->assertEquals('Nice to meet you, too.', $r['answers'][0]['answer']);
+
+        $r = $this->kb->generateAnswer($kb['kbId'], 'hello', 3);
+        $this->assertEquals(0, count($r['answers']));
+
+        $r = $this->kb->delete($kb['kbId']);
+        $this->assertTrue($r);
+    }
 }
