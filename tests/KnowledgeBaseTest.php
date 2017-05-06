@@ -204,4 +204,37 @@ class KnowledgeBaseTest extends TestCase
         $r = $this->kb->delete($kb['kbId']);
         $this->assertTrue($r);
     }
+
+    public function testDeleteQnaPairs()
+    {
+        $name = 'Learn English - testDeleteQnaPairs';
+        $qnaPairs = [
+            ['answer' => 'Fine, thanks.', 'question' => 'how are you?'],
+            ['answer' => 'Fine, thanks.', 'question' => 'are you ok?'],
+            ['answer' => 'Nice to meet you, too.', 'question' => 'Nice to meet you'],
+        ];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $kb = $this->kb->create($name, $qnaPairs);
+        $this->assertArrayHasKey('kbId', $kb);
+
+        $deleteQnaPairs = [
+            $qnaPairs[1],
+        ];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->deleteQnaPairs($kb['kbId'], $deleteQnaPairs, true);
+        $this->assertTrue($r);
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->generateAnswer($kb['kbId'], 'how are you');
+        $this->assertEquals(1, count($r['answers']));
+        $this->assertEquals(['how are you?'], $r['answers'][0]['questions']);
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->delete($kb['kbId']);
+        $this->assertTrue($r);
+    }
 }

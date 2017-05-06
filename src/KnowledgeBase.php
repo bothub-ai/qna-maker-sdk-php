@@ -64,7 +64,7 @@ class KnowledgeBase
      *
      * @example shell curl -X DELETE -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a073d9e041ad42d9bab
-     * @return array
+     * @return boolean
      */
     public function delete($id)
     {
@@ -114,7 +114,7 @@ class KnowledgeBase
      *
      * @example shell curl -X POST -d '{"add": {"qnaPairs": [{"answer": "Hello, How can I help you?", "question": "Hello" }], "urls": ["http://www.spaceneedle.com/faq/"]}, "delete": {"qnaPairs": [{"answer": "Hello", "question": "hi"}], "urls": ["https://example.com/"]}}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a083d9e041ad42d9bad
-     * @return array
+     * @return boolean
      */
     public function update($id, $add = [], $delete = [], $publish = false)
     {
@@ -146,7 +146,7 @@ class KnowledgeBase
      *
      * @example shell curl -X PUT -d '' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/589ab9223d9e041d18da6433
-     * @return array
+     * @return boolean
      */
     public function publish($id)
     {
@@ -169,5 +169,18 @@ class KnowledgeBase
             throw new Exception('BadArgument: The qnaPairs field is required.');
         }
         return $this->update($id, ['qnaPairs' => $qnaPairs], [], $publish);
+    }
+
+    /**
+     * delete QnA pairs
+     *
+     * @return boolean
+     */
+    public function deleteQnaPairs($id, $qnaPairs, $publish = false)
+    {
+        if (empty($qnaPairs)) {
+            throw new Exception('BadArgument: The qnaPairs field is required.');
+        }
+        return $this->update($id, [], ['qnaPairs' => $qnaPairs], $publish);
     }
 }
