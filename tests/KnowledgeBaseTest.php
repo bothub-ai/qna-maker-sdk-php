@@ -19,7 +19,7 @@ class KnowledgeBaseTest extends TestCase
         ]);
     }
 
-    public function testCreate()
+    public function testCreateAndDelete()
     {
         $name = 'Learn English';
         $qnaPairs = [
@@ -29,10 +29,22 @@ class KnowledgeBaseTest extends TestCase
         $urls = ['http://www.seattle.gov/hala/faq', 'https://example.com/'];
         $r = $this->kb->create($name . ' - only name');
         $this->assertArrayHasKey('kbId', $r);
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7); // QnA limit 10 transactions per minute. see https://qnamaker.ai/Documentation/Authentication
+        $r = $this->kb->delete($r['kbId']);
+        $this->assertTrue($r);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->create($name . ' - name and qnaParis', $qnaPairs);
         $this->assertArrayHasKey('kbId', $r);
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->delete($r['kbId']);
+        $this->assertTrue($r);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->create($name . ' - name and urls', [], $urls);
         $this->assertArrayHasKey('kbId', $r);
         $dataExtractionResults = [
@@ -48,17 +60,18 @@ class KnowledgeBaseTest extends TestCase
             ],
         ];
         $this->assertEquals($dataExtractionResults, $r['dataExtractionResults']);
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->delete($r['kbId']);
+        $this->assertTrue($r);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->create($name . ' - name, qnaPairs and urls', $qnaPairs, $urls);
         $this->assertArrayHasKey('kbId', $r);
         $this->assertEquals($dataExtractionResults, $r['dataExtractionResults']);
-    }
-
-    public function testDelete()
-    {
-        $r = $this->kb->create('Nine Days\' Wonder');
-        $this->assertArrayHasKey('kbId', $r);
-
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->delete($r['kbId']);
         $this->assertTrue($r);
     }
@@ -71,14 +84,20 @@ class KnowledgeBaseTest extends TestCase
             ['answer' => 'Fine, thanks.', 'question' => 'are you ok?'],
             ['answer' => 'Nice to meet you, too.', 'question' => 'Nice to meet you'],
         ];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $kb = $this->kb->create($name, $qnaPairs);
         $this->assertArrayHasKey('kbId', $kb);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->generateAnswer($kb['kbId'], 'how are you');
         $this->assertEquals(1, count($r['answers']));
         $this->assertEquals(['how are you?', 'are you ok?'], $r['answers'][0]['questions']);
         $this->assertEquals('Fine, thanks.', $r['answers'][0]['answer']);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->generateAnswer($kb['kbId'], 'Nice to meet you');
         $this->assertEquals(1, count($r['answers']));
         // test question always be converted to low case
@@ -86,9 +105,13 @@ class KnowledgeBaseTest extends TestCase
         // test question keep case
         $this->assertEquals('Nice to meet you, too.', $r['answers'][0]['answer']);
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->generateAnswer($kb['kbId'], 'hello', 3);
         $this->assertEquals(0, count($r['answers']));
 
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
         $r = $this->kb->delete($kb['kbId']);
         $this->assertTrue($r);
     }
