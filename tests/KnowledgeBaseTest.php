@@ -19,7 +19,7 @@ class KnowledgeBaseTest extends TestCase
         ]);
     }
 
-    public function testStore()
+    public function testCreate()
     {
         $name = 'Learn English';
         $qnaPairs = [
@@ -27,13 +27,13 @@ class KnowledgeBaseTest extends TestCase
             ['answer' => 'Nice to meet you, too.', 'question' => 'nice to meet you'],
         ];
         $urls = ['http://www.seattle.gov/hala/faq', 'https://example.com/'];
-        $r = $this->kb->store($name . ' - only name');
+        $r = $this->kb->create($name . ' - only name');
         $this->assertArrayHasKey('kbId', $r);
 
-        $r = $this->kb->store($name . ' - name and qnaParis', $qnaPairs);
+        $r = $this->kb->create($name . ' - name and qnaParis', $qnaPairs);
         $this->assertArrayHasKey('kbId', $r);
 
-        $r = $this->kb->store($name . ' - name and urls', [], $urls);
+        $r = $this->kb->create($name . ' - name and urls', [], $urls);
         $this->assertArrayHasKey('kbId', $r);
         $dataExtractionResults = [
             [
@@ -49,14 +49,14 @@ class KnowledgeBaseTest extends TestCase
         ];
         $this->assertEquals($dataExtractionResults, $r['dataExtractionResults']);
 
-        $r = $this->kb->store($name . ' - name, qnaPairs and urls', $qnaPairs, $urls);
+        $r = $this->kb->create($name . ' - name, qnaPairs and urls', $qnaPairs, $urls);
         $this->assertArrayHasKey('kbId', $r);
         $this->assertEquals($dataExtractionResults, $r['dataExtractionResults']);
     }
 
     public function testDelete()
     {
-        $r = $this->kb->store('Nine Days\' Wonder');
+        $r = $this->kb->create('Nine Days\' Wonder');
         $this->assertArrayHasKey('kbId', $r);
 
         $r = $this->kb->delete($r['kbId']);

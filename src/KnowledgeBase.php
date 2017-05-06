@@ -35,7 +35,7 @@ class KnowledgeBase
      * @example shell curl -X POST -d '{"name": "Learn English", "qnaPairs":[{"answer": "Fine, thanks.", "question": "how are you?"},{"answer": "Nice to meet you, too.", "question": "nice to meet you"}, "urls": ["http://www.seattle.gov/hala/faq"]]}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/create
      * @return array
      */
-    public function store($name, $qnaPairs = [], $urls = [])
+    public function create($name, $qnaPairs = [], $urls = [])
     {
         if (empty($name)) {
             throw new Exception('need: name(not empty)');
