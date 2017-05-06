@@ -6,13 +6,10 @@ for FILENAME in $(find tests/ -type f -name "*Test.php")
 do
     printf '-'
     I=$(($I + 1))
-    ./vendor/bin/phpunit $FILENAME > /dev/null
+    OUT=$(./vendor/bin/phpunit $FILENAME)
     if [ $? -ne 0 ]; then
         FLAG=$(($FLAG + 1))
-        ./vendor/bin/phpunit $FILENAME
-        if [ $? -eq 0 ]; then
-            FLAG=$(($FLAG - 1))
-        fi
+        echo -e $OUT
     fi
 done
 printf "\n\n"
