@@ -75,4 +75,37 @@ class KnowledgeBase
         }
         return true;
     }
+
+    /**
+     * Generate answer
+     *
+     * @example shell curl -X POST -d '{"question": "hi"}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}/generateAnswer
+     * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a073d9e041ad42d9ba9
+     * @return array
+     */
+    public function generateAnswer($id, $question, $top = 1)
+    {
+        if (empty($question)) {
+            throw new Exception('BadArgument: The Question field is required.');
+        }
+        $data = [
+            'question' => $question,
+        ];
+        if ($top != 1) {
+            $data['top'] = $top;
+        }
+        try {
+            $response = $this->client->request('POST', $id . '/generateAnswer', [
+                'json' => $data,
+            ]);
+            $r = json_decode($response->getBody(), true);
+            // if not match, QnA response ["answers": [{"answer": "No good match found in the KB", "questions": null, "score": 0}]]
+            if (count($r['answers']) == 1 && $r['answers'][0]['score'] == 0) {
+                $r['answers'] = [];
+            }
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return $r;
+    }
 }
