@@ -58,4 +58,21 @@ class KnowledgeBase
         }
         return json_decode($response->getBody(), true);
     }
+
+    /**
+     * Delete Knowledge Base
+     *
+     * @example shell curl -X DELETE -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
+     * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a073d9e041ad42d9bab
+     * @return array
+     */
+    public function delete($id)
+    {
+        try {
+            $this->client->request('DELETE', $id);
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return true;
+    }
 }

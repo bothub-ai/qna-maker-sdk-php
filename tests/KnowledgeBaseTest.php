@@ -15,7 +15,7 @@ class KnowledgeBaseTest extends TestCase
     {
         $this->kb = new KnowledgeBase([
             'subscription_key' => getenv('QNA_SUB_KEY'),
-            'timeout' => 10,
+            'timeout' => 20,
         ]);
     }
 
@@ -52,5 +52,14 @@ class KnowledgeBaseTest extends TestCase
         $r = $this->kb->store($name . ' - name, qnaPairs and urls', $qnaPairs, $urls);
         $this->assertArrayHasKey('kbId', $r);
         $this->assertEquals($dataExtractionResults, $r['dataExtractionResults']);
+    }
+
+    public function testDelete()
+    {
+        $r = $this->kb->store('Nine Days\' Wonder');
+        $this->assertArrayHasKey('kbId', $r);
+
+        $r = $this->kb->delete($r['kbId']);
+        $this->assertTrue($r);
     }
 }
