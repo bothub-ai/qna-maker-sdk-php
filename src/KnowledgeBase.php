@@ -116,7 +116,7 @@ class KnowledgeBase
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a083d9e041ad42d9bad
      * @return array
      */
-    public function update($id, $add = [], $delete = [])
+    public function update($id, $add = [], $delete = [], $publish = false)
     {
         if (empty($add) && empty($delete)) {
             throw new Exception('BadArgument: The Add or Delete field is required.');
@@ -132,6 +132,9 @@ class KnowledgeBase
             $this->client->request('PATCH', $id, [
                 'json' => $data,
             ]);
+            if ($publish) {
+                $this->publish($id);
+            }
         } catch (\Exception $e) {
             throw new Exception($e->getMessage());
         }
@@ -139,7 +142,7 @@ class KnowledgeBase
     }
 
     /**
-     * Update Knowledge Base
+     * Publish Knowledge Base
      *
      * @example shell curl -X PUT -d '' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/589ab9223d9e041d18da6433
@@ -153,5 +156,18 @@ class KnowledgeBase
             throw new Exception($e->getMessage());
         }
         return true;
+    }
+
+    /**
+     * add QnA pairs
+     *
+     * @return boolean
+     */
+    public function addQnaPairs($id, $qnaPairs, $publish = false)
+    {
+        if (empty($qnaPairs)) {
+            throw new Exception('BadArgument: The qnaPairs field is required.');
+        }
+        return $this->update($id, ['qnaPairs' => $qnaPairs], [], $publish);
     }
 }

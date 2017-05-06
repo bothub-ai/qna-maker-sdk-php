@@ -174,4 +174,34 @@ class KnowledgeBaseTest extends TestCase
         $r = $this->kb->delete($kb['kbId']);
         $this->assertTrue($r);
     }
+
+    public function testAddQnaPairs()
+    {
+        $name = 'Learn English - testAddQnaPairs';
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $kb = $this->kb->create($name);
+        $this->assertArrayHasKey('kbId', $kb);
+
+        $qnaPairs = [
+            [
+                'answer' => 'Hello, How can I help you?',
+                'question' => 'Hello',
+            ],
+        ];
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->addQnaPairs($kb['kbId'], $qnaPairs, true);
+        $this->assertTrue($r);
+
+        $r = $this->kb->generateAnswer($kb['kbId'], 'Hello');
+        $this->assertEquals(1, count($r['answers']));
+        $this->assertEquals(['hello'], $r['answers'][0]['questions']);
+        $this->assertEquals('Hello, How can I help you?', $r['answers'][0]['answer']);
+
+        fwrite(STDERR, 'sleep 7s' . "\n");
+        sleep(7);
+        $r = $this->kb->delete($kb['kbId']);
+        $this->assertTrue($r);
+    }
 }
