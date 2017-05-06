@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/project
     docker:
-      - image: php:5.6-cli
+      - image: composer
     steps:
       - checkout
       - run:
