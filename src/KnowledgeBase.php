@@ -64,7 +64,7 @@ class KnowledgeBase
      *
      * @example shell curl -X DELETE -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
      * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a073d9e041ad42d9bab
-     * @return array
+     * @return boolean
      */
     public function delete($id)
     {
@@ -107,5 +107,80 @@ class KnowledgeBase
             throw new Exception($e->getMessage());
         }
         return $r;
+    }
+
+    /**
+     * Update Knowledge Base
+     *
+     * @example shell curl -X POST -d '{"add": {"qnaPairs": [{"answer": "Hello, How can I help you?", "question": "Hello" }], "urls": ["http://www.spaceneedle.com/faq/"]}, "delete": {"qnaPairs": [{"answer": "Hello", "question": "hi"}], "urls": ["https://example.com/"]}}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
+     * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/58994a083d9e041ad42d9bad
+     * @return boolean
+     */
+    public function update($id, $add = [], $delete = [], $publish = false)
+    {
+        if (empty($add) && empty($delete)) {
+            throw new Exception('BadArgument: The Add or Delete field is required.');
+        }
+        $data = [];
+        if (!empty($add)) {
+            $data['add'] = $add;
+        }
+        if (!empty($delete)) {
+            $data['delete'] = $delete;
+        }
+        try {
+            $this->client->request('PATCH', $id, [
+                'json' => $data,
+            ]);
+            if ($publish) {
+                $this->publish($id);
+            }
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return true;
+    }
+
+    /**
+     * Publish Knowledge Base
+     *
+     * @example shell curl -X PUT -d '' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/{knowledgeBaseID}
+     * @link https://westus.dev.cognitive.microsoft.com/docs/services/58994a073d9e04097c7ba6fe/operations/589ab9223d9e041d18da6433
+     * @return boolean
+     */
+    public function publish($id)
+    {
+        try {
+            $this->client->request('PUT', $id);
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return true;
+    }
+
+    /**
+     * add QnA pairs
+     *
+     * @return boolean
+     */
+    public function addQnaPairs($id, $qnaPairs, $publish = false)
+    {
+        if (empty($qnaPairs)) {
+            throw new Exception('BadArgument: The qnaPairs field is required.');
+        }
+        return $this->update($id, ['qnaPairs' => $qnaPairs], [], $publish);
+    }
+
+    /**
+     * delete QnA pairs
+     *
+     * @return boolean
+     */
+    public function deleteQnaPairs($id, $qnaPairs, $publish = false)
+    {
+        if (empty($qnaPairs)) {
+            throw new Exception('BadArgument: The qnaPairs field is required.');
+        }
+        return $this->update($id, [], ['qnaPairs' => $qnaPairs], $publish);
     }
 }
