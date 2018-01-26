@@ -22,7 +22,7 @@ class KnowledgeBaseTest extends TestCase
         'https://www.uscis.gov/citizenship/teachers/educational-products/100-civics-questions-and-answers-mp3-audio-english-version',
     ];
     private $dataExtractionResults = [];
-
+    private $name;
 
     protected function setUp()
     {
@@ -43,11 +43,12 @@ class KnowledgeBaseTest extends TestCase
                 "source" => $this->urls[1],
             ],
         ];
+        $this->name = $this->faker->word . ' ' . date('Y-m-d H:i:s') . ' - ';
     }
 
     public function testCreateWithName()
     {
-        $r = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__);
+        $r = $this->kb->create($this->name . __FUNCTION__);
         $this->assertArrayHasKey('kbId', $r);
 
         $this->sleep(); // QnA limit 10 transactions per minute. see https://qnamaker.ai/Documentation/Authentication
@@ -60,7 +61,7 @@ class KnowledgeBaseTest extends TestCase
 
     public function testCreateWithQnaParis()
     {
-        $r = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, $this->qnaPairs);
+        $r = $this->kb->create($this->name . __FUNCTION__, $this->qnaPairs);
         $this->assertArrayHasKey('kbId', $r);
 
         $this->sleep();
@@ -73,7 +74,7 @@ class KnowledgeBaseTest extends TestCase
 
     public function testCreateWithUrls()
     {
-        $r = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, [], $this->urls);
+        $r = $this->kb->create($this->name . __FUNCTION__, [], $this->urls);
         $this->assertArrayHasKey('kbId', $r);
         $this->assertEquals($this->dataExtractionResults, $r['dataExtractionResults']);
 
@@ -88,7 +89,7 @@ class KnowledgeBaseTest extends TestCase
     public function testCreateWithBadUrls()
     {
         try {
-            $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, [], ["https://example.com/"]);
+            $this->kb->create($this->name . __FUNCTION__, [], ["https://example.com/"]);
         } catch (Exception $e) {
             $this->assertEquals(Exception::$codeStr2Num['ExtractionFailed'], $e->getCode());
         }
@@ -98,7 +99,7 @@ class KnowledgeBaseTest extends TestCase
 
     public function testCreateWithQnaPairsAndUrls()
     {
-        $r = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, $this->qnaPairs, $this->urls);
+        $r = $this->kb->create($this->name . __FUNCTION__, $this->qnaPairs, $this->urls);
         $this->assertArrayHasKey('kbId', $r);
         $this->assertEquals($this->dataExtractionResults, $r['dataExtractionResults']);
 
@@ -119,7 +120,7 @@ class KnowledgeBaseTest extends TestCase
         ];
 
         $this->sleep();
-        $kb = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, $qnaPairs);
+        $kb = $this->kb->create($this->name . __FUNCTION__, $qnaPairs);
         $this->assertArrayHasKey('kbId', $kb);
 
         $this->sleep();
@@ -158,7 +159,7 @@ class KnowledgeBaseTest extends TestCase
 
         $this->sleep();
 
-        $kb = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, $qnaPairs, $urls);
+        $kb = $this->kb->create($this->name . __FUNCTION__, $qnaPairs, $urls);
         $this->assertArrayHasKey('kbId', $kb);
 
         $this->sleep();
@@ -215,7 +216,7 @@ class KnowledgeBaseTest extends TestCase
 
         $this->sleep();
 
-        $kb = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__);
+        $kb = $this->kb->create($this->name . __FUNCTION__);
         $this->assertArrayHasKey('kbId', $kb);
 
         $qnaPairs = [
@@ -253,7 +254,7 @@ class KnowledgeBaseTest extends TestCase
 
         $this->sleep();
 
-        $kb = $this->kb->create($this->faker->word . ' - ' . __FUNCTION__, $qnaPairs);
+        $kb = $this->kb->create($this->name . __FUNCTION__, $qnaPairs);
         $this->assertArrayHasKey('kbId', $kb);
 
         $deleteQnaPairs = [
@@ -277,7 +278,7 @@ class KnowledgeBaseTest extends TestCase
         $this->assertTrue($r);
     }
 
-    private function sleep($seconds = 0)
+    private function sleep($seconds = 7)
     {
         fwrite(STDERR, 'sleep ' . $seconds . 's' . "\n");
         sleep($seconds);
