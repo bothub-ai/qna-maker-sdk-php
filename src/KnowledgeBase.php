@@ -85,13 +85,9 @@ class KnowledgeBase
         }
         $data = [
             'name' => $name,
-            'qnaPairs' => !empty($qnaPairs) ? $qnaPairs : [
-                ['answer' => 'Hello', 'question' => 'hi'],
-            ], // QnA bug: return 400 "BadArgument Request Body" when only send "name"，so send one question at here
+            'qnaPairs' => $qnaPairs,
+            'urls' => $urls,
         ];
-        if (!empty($urls)) {
-            $data['urls'] = $urls;
-        }
         $response = $this->requestApi('POST', 'create', $data);
         return json_decode($response->getBody(), true);
     }
