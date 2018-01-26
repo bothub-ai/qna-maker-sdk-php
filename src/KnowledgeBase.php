@@ -3,6 +3,7 @@
 namespace Microsoft\QnAMaker;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class KnowledgeBase
 {
@@ -14,31 +15,73 @@ class KnowledgeBase
         'subscription_key' => '',
     );
 
-    public function __construct($conf)
+    public function __construct($conf, $client = null)
     {
         if (empty($conf) || !isset($conf['subscription_key']) || empty($conf['subscription_key'])) {
             throw new Exception('need: subscription_key');
         }
         $this->conf = array_merge($this->conf, $conf);
-        $this->client = new Client([
-            'base_uri' => $this->conf['base_uri'],
-            'timeout' => $this->conf['timeout'],
-            'headers' => [
-                'Ocp-Apim-Subscription-Key' => $this->conf['subscription_key'],
-            ],
-        ]);
+        if (empty($client)) {
+            $this->client = new Client([
+                'base_uri' => $this->conf['base_uri'],
+                'timeout' => $this->conf['timeout'],
+                'headers' => [
+                    'Ocp-Apim-Subscription-Key' => $this->conf['subscription_key'],
+                ],
+            ]);
+        } else {
+            $this->client = $client;
+        }
+    }
+
+    private function requestApi($method, $path, $data =[])
+    {
+        try {
+            $response = $this->client->request($method, $path, [
+                'json' => $data,
+            ]);
+        } catch (RequestException $e) {
+            /*
+            {
+              "error": {
+                "extractionStatuses": [
+                  {
+                    "sourceType": "Url",
+                    "externalStatusCode": "NoQuestionsFound",
+                    "source": "https://example.com/"
+                  }
+                ],
+                "code": "ExtractionFailed",
+                "message": "Unsupported / Invalid url(s). Failed to extract Q&A from the following sources: https://example.com/"
+              }
+            }
+            */
+            if ($e->hasResponse()) {
+                $body = $e->getResponse()->getBody();
+                $tmp = json_decode($body, true);
+                $error = isset($tmp['error']) ? $tmp['error'] : [];
+                $code = isset($error['code']) && isset(Exception::$codeStr2Num[$error['code']]) ? Exception::$codeStr2Num[$error['code']] : $e->getCode();
+                $message = isset($error['code']) && isset($error['message']) ? $error['code'] . ': ' . $error['message'] : $body;
+                throw new Exception($message, $code);
+            } else {
+                throw new Exception($e->getMessage(), $e->getCode());
+            }
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode());
+        }
+        return $response;
     }
 
     /**
      * Create Knowledge Base
      *
-     * @example shell curl -X POST -d '{"name": "Learn English", "qnaPairs":[{"answer": "Fine, thanks.", "question": "how are you?"},{"answer": "Nice to meet you, too.", "question": "nice to meet you"}, "urls": ["http://www.seattle.gov/hala/faq"]]}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/create
+     * @example shell curl -X POST -d '{"name": "Learn English", "qnaPairs":[{"answer": "Fine, thanks.", "question": "how are you?"},{"answer": "Nice to meet you, too.", "question": "nice to meet you"}], "urls": ["http://www.seattle.gov/hala/faq"]}' -H 'Content-Type: application/json' -H 'Ocp-Apim-Subscription-Key: {subscription key}' https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/create
      * @return array
      */
     public function create($name, $qnaPairs = [], $urls = [])
     {
         if (empty($name)) {
-            throw new Exception('need: name(not empty)');
+            throw new Exception('need: name(not empty)', 400);
         }
         $data = [
             'name' => $name,
@@ -49,13 +92,7 @@ class KnowledgeBase
         if (!empty($urls)) {
             $data['urls'] = $urls;
         }
-        try {
-            $response = $this->client->request('POST', 'create', [
-                'json' => $data,
-            ]);
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
-        }
+        $response = $this->requestApi('POST', 'create', $data);
         return json_decode($response->getBody(), true);
     }
 
@@ -68,11 +105,7 @@ class KnowledgeBase
      */
     public function delete($id)
     {
-        try {
-            $this->client->request('DELETE', $id);
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
-        }
+        $this->requestApi('DELETE', $id);
         return true;
     }
 
@@ -86,7 +119,7 @@ class KnowledgeBase
     public function generateAnswer($id, $question, $top = 1)
     {
         if (empty($question)) {
-            throw new Exception('BadArgument: The Question field is required.');
+            throw new Exception('BadArgument: The Question field is required.', 400);
         }
         $data = [
             'question' => $question,
@@ -94,17 +127,11 @@ class KnowledgeBase
         if ($top != 1) {
             $data['top'] = $top;
         }
-        try {
-            $response = $this->client->request('POST', $id . '/generateAnswer', [
-                'json' => $data,
-            ]);
-            $r = json_decode($response->getBody(), true);
-            // if not match, QnA response ["answers": [{"answer": "No good match found in the KB", "questions": null, "score": 0}]]
-            if (count($r['answers']) == 1 && $r['answers'][0]['score'] == 0) {
-                $r['answers'] = [];
-            }
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
+        $response = $this->requestApi('POST', $id . '/generateAnswer', $data);
+        $r = json_decode($response->getBody(), true);
+        // if not match, QnA response ["answers": [{"answer": "No good match found in the KB", "questions": null, "score": 0}]]
+        if (count($r['answers']) == 1 && $r['answers'][0]['score'] == 0) {
+            $r['answers'] = [];
         }
         return $r;
     }
@@ -119,7 +146,7 @@ class KnowledgeBase
     public function update($id, $add = [], $delete = [], $publish = false)
     {
         if (empty($add) && empty($delete)) {
-            throw new Exception('BadArgument: The Add or Delete field is required.');
+            throw new Exception('BadArgument: The Add or Delete field is required.', 400);
         }
         $data = [];
         if (!empty($add)) {
@@ -128,15 +155,9 @@ class KnowledgeBase
         if (!empty($delete)) {
             $data['delete'] = $delete;
         }
-        try {
-            $this->client->request('PATCH', $id, [
-                'json' => $data,
-            ]);
-            if ($publish) {
-                $this->publish($id);
-            }
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
+        $this->requestApi('PATCH', $id, $data);
+        if ($publish) {
+            $this->publish($id);
         }
         return true;
     }
@@ -150,11 +171,7 @@ class KnowledgeBase
      */
     public function publish($id)
     {
-        try {
-            $this->client->request('PUT', $id);
-        } catch (\Exception $e) {
-            throw new Exception($e->getMessage());
-        }
+        $this->requestApi('PUT', $id);
         return true;
     }
 
