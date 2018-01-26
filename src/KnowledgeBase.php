@@ -85,9 +85,13 @@ class KnowledgeBase
         }
         $data = [
             'name' => $name,
-            'qnaPairs' => $qnaPairs,
-            'urls' => $urls,
         ];
+        if (!empty($qnaPairs)) {
+            $data['qnaPairs'] = $qnaPairs;
+        }
+        if (!empty($urls)) {
+            $data['urls'] = $urls;
+        }
         $response = $this->requestApi('POST', 'create', $data);
         return json_decode($response->getBody(), true);
     }
