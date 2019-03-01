@@ -10,7 +10,7 @@ class KnowledgeBase
     private $client;
 
     private $conf = array(
-        'base_uri' => 'https://westus.api.cognitive.microsoft.com/qnamaker/v2.0/knowledgebases/',
+        'base_uri' => 'https://westus.api.cognitive.microsoft.com/qnamaker/v4.0/knowledgebases/',
         'timeout'  => 3.0,
         'subscription_key' => '',
     );
