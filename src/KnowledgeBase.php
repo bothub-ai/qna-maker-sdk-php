@@ -10,9 +10,10 @@ class KnowledgeBase
     private $client;
 
     private $conf = array(
-        'base_uri' => 'https://westus.api.cognitive.microsoft.com/qnamaker/v4.0/knowledgebases/',
+        'base_uri' => env('BASE_URI', 'https://westus.api.cognitive.microsoft.com/qnamaker/v4.0/knowledgebases/'),
+        'subscription_key' => env('SUBSCRIOTOIN_KEY'),
         'timeout'  => 3.0,
-        'subscription_key' => '',
+        
     );
 
     public function __construct($conf, $client = null)
